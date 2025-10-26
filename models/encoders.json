@@ -1,0 +1,76 @@
+{
+  "Fever": {
+    "classes": [
+      "No",
+      "Yes"
+    ]
+  },
+  "Cough": {
+    "classes": [
+      "No",
+      "Yes"
+    ]
+  },
+  "Fatigue": {
+    "classes": [
+      "No",
+      "Yes"
+    ]
+  },
+  "DB": {
+    "classes": [
+      "No",
+      "Yes"
+    ]
+  },
+  "Gender": {
+    "classes": [
+      "Female",
+      "Male"
+    ]
+  },
+  "BP": {
+    "classes": [
+      "High",
+      "Low",
+      "Normal"
+    ]
+  },
+  "CL": {
+    "classes": [
+      "High",
+      "Low",
+      "Normal"
+    ]
+  },
+  "Disease": {
+    "classes": [
+      "Allergic Rhinitis",
+      "Anxiety Disorders",
+      "Cardio",
+      "Common Cold",
+      "Depression",
+      "Eczema",
+      "Endocrine",
+      "Gastroenteritis",
+      "Infectious",
+      "Kidney Cancer",
+      "Kidney Disease",
+      "Liver Cancer",
+      "Liver Disease",
+      "Metabolic",
+      "Migraine",
+      "Multiple Sclerosis",
+      "Osteoarthritis",
+      "Osteoporosis",
+      "Other",
+      "Pancreatitis",
+      "Psoriasis",
+      "Respiratory",
+      "Rheumatoid Arthritis",
+      "Stroke",
+      "Ulcerative Colitis",
+      "Urinary Tract Infection"
+    ]
+  }
+}

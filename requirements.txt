@@ -1,0 +1,11 @@
+flask
+scikit-learn
+pandas
+joblib
+numpy
+matplotlib
+chartjs
+shap
+imblearn
+requests
+markdown

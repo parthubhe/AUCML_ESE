@@ -1,0 +1,12 @@
+{
+  "features": [
+    "Fever",
+    "Cough",
+    "Fatigue",
+    "DB",
+    "Age",
+    "Gender",
+    "BP",
+    "CL"
+  ]
+}

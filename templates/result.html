@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Prediction Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <style>
+      .llm-output { white-space: pre-wrap; background:#fff; padding:1rem; border-radius:.5rem; max-height:420px; overflow:auto; box-shadow: 0 0 0 1px rgba(0,0,0,0.04) inset; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <div class="card shadow mx-auto mb-4" style="max-width:1200px;">
+        <div class="card-body">
+          <h3 class="card-title">Prediction — Probabilities</h3>
+          <p class="text-muted">Top predicted diseases and probabilities</p>
+
+          <div class="row">
+            <div class="col-md-5">
+              <ul class="list-group">
+                {% for cls,prob in topk %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>{{ cls }}</div>
+                    <span class="badge bg-primary rounded-pill">{{ '%.2f'|format(prob*100) }}%</span>
+                  </li>
+                {% endfor %}
+              </ul>
+              <div class="mt-3">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back</a>
+              </div>
+              {% if similar_cases %}
+                <h5 class="mt-4">Similar cases from training data</h5>
+                <table class="table table-sm table-striped">
+                  <thead><tr><th>Disease</th><th>Age</th><th>Fever</th><th>Cough</th><th>Fatigue</th></tr></thead>
+                  <tbody>
+                    {% for s in similar_cases %}
+                      <tr>
+                        <td>{{ s.Disease }}</td>
+                        <td>{{ s.Age }}</td>
+                        <td>{{ s.Fever }}</td>
+                        <td>{{ s.Cough }}</td>
+                        <td>{{ s.Fatigue }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% endif %}
+            </div>
+            <div class="col-md-7">
+              <canvas id="probChart" height="360"></canvas>
+
+              {% if shap_bar %}
+                <h5 class="mt-4">Local explanation (SHAP)</h5>
+                <canvas id="shapChart" height="300"></canvas>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card shadow mx-auto" style="max-width:1200px;">
+        <div class="card-body">
+          <h4 class="card-title">LLM Diagnostics & Recommendations</h4>
+          <p class="text-muted small">Context-aware assessment from your local Ollama model (<code>{{ config.get('OLLAMA_MODEL', 'local model') }}</code>)</p>
+          {% if llm_output %}
+            <div class="llm-output">{{ llm_output | safe }}</div>
+          {% else %}
+            <div class="alert alert-secondary">No diagnostics available.</div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      const labels = {{ chart.labels|tojson }};
+      const probs = {{ chart.probs|tojson }};
+      const ctx = document.getElementById('probChart').getContext('2d');
+      const data = {
+        labels: labels,
+        datasets: [{
+          label: 'Probability (%)',
+          data: probs.map(p => p*100),
+          borderWidth: 1
+        }]
+      };
+      const config = {
+        type: 'bar',
+        data: data,
+        options: {
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      };
+      new Chart(ctx, config);
+
+      {% if shap_bar %}
+        const shapPairs = {{ shap_bar|tojson }};
+        const s_labels = shapPairs.map(x => x.feature);
+        const s_values = shapPairs.map(x => x.value);
+        const sctx = document.getElementById('shapChart').getContext('2d');
+        new Chart(sctx, {
+          type: 'bar',
+          data: {
+            labels: s_labels,
+            datasets: [{ label: 'SHAP value', data: s_values, borderWidth: 1 }]
+          },
+          options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+        });
+      {% endif %}
+    </script>
+  </body>
+</html>

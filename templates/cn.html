@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPLS VPN Packet Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 900px;
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.15rem;
+            line-height: 1.6;
+        }
+        
+        .diagram-container {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            padding: 35px;
+            width: 100%;
+            max-width: 1100px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .network-path {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin: 40px 0;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .device {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 3;
+            width: 100px; /* Explicit width for alignment */
+        }
+        
+        .device-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+            position: relative;
+        }
+        
+        .ce1, .ce2 {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .pe1, .pe2 {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .p-router {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .device-label {
+            margin-top: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        /* --- CORRECTED Connection line and arrows --- */
+        .network-path::before {
+            content: '';
+            position: absolute;
+            top: 50px; /* Vertically center with icons */
+            left: 50px; /* Start at the center of the first icon */
+            width: calc(100% - 100px); /* Extend to the center of the last icon */
+            height: 4px;
+            background-color: #34495e;
+            z-index: 1;
+        }
+        
+        .arrow-head {
+            position: absolute;
+            top: 45px; /* Vertically center with the line */
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 12px solid #34495e;
+            z-index: 2;
+        }
+        
+        /* Position arrows to point at the center of each device icon */
+        .arrow-1 { left: 25%; transform: translateX(-56px); } /* 50px radius + 6px half of border */
+        .arrow-2 { left: 50%; transform: translateX(-56px); }
+        .arrow-3 { left: 75%; transform: translateX(-56px); }
+        .arrow-4 { left: 100%; transform: translateX(-56px); }
+        
+        /* Remove old broken connection styles */
+        .connection { display: none; }
+        
+        /* Step indicators */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            /* FIX: Increased margin to prevent overlap with callouts */
+            margin-top: 300px;
+            position: relative;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-basis: 18%; /* Assign equal space */
+            position: relative;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            position: relative;
+        }
+        
+        .packet {
+            width: 180px;
+            min-height: 80px;
+            background: white;
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .packet-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .ip-packet {
+            background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
+            border-color: #7f8c8d;
+        }
+        
+        .mpls-packet {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        }
+        
+        .label-stack {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .label {
+            width: 100%;
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        
+        .outer-label {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .inner-label {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .p-router-action {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .callout {
+            position: absolute;
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            width: 220px;
+        }
+        
+        /* FIX: Position callouts below the network devices */
+        .callout-2 {
+            top: 220px;
+            left: 27%;
+            transform: translateX(-50%);
+        }
+        
+        .callout-3 {
+            top: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .callout-4 {
+            top: 220px;
+            left: 72%;
+            transform: translateX(-50%);
+        }
+        
+        /* Corrected callout arrow to point UP */
+        .callout-arrow {
+            position: absolute;
+            top: -16px; /* Position above the callout box */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #3498db; /* Make it point up */
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .legend-ip { background: linear-gradient(to bottom, #ecf0f1, #bdc3c7); }
+        .legend-outer { background: linear-gradient(to right, #3498db, #2980b9); }
+        .legend-inner { background: linear-gradient(to right, #9b59b6, #8e44ad); }
+        .legend-p { background: linear-gradient(to right, #2ecc71, #27ae60); }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 1000px) {
+            .steps {
+                flex-wrap: wrap;
+                gap: 30px;
+                margin-top: 40px;
+            }
+            
+            .step {
+                width: 45%;
+                margin-bottom: 20px;
+                flex-basis: auto;
+            }
+            
+            .callout {
+                position: relative;
+                margin-top: 20px;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
+                max-width: 100%;
+            }
+            
+            .callout-arrow {
+                display: none;
+            }
+            
+            .network-path {
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: center;
+            }
+            
+            .network-path::before, .arrow-head {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MPLS VPN Packet Journey</h1>
+        <p class="subtitle">Step-by-step visualization of how MPLS VPN encapsulates and transports packets across the provider network</p>
+    </div>
+    
+    <div class="diagram-container">
+        <div class="flow-diagram">
+            <!-- Network Devices -->
+            <div class="network-path">
+                <div class="device">
+                    <div class="device-icon ce1">CE1</div>
+                    <div class="device-label">Customer Edge</div>
+                </div>
+                
+                <div class="device">
+                    <div class="device-icon pe1">PE1</div>
+                    <div class="device-label">Provider Edge</div>
+                </div>
+                
+                <div class="device">
+                    <div class="device-icon p-router">P</div>
+                    <div class="device-label">Provider Router</div>
+                </div>
+                
+                <div class="device">
+                    <div class="device-icon pe2">PE2</div>
+                    <div class="device-label">Provider Edge</div>
+                </div>
+                
+                <div class="device">
+                    <div class="device-icon ce2">CE2</div>
+                    <div class="device-label">Customer Edge</div>
+                </div>
+                
+                <!-- Arrow heads for the connecting line -->
+                <div class="arrow-head arrow-1"></div>
+                <div class="arrow-head arrow-2"></div>
+                <div class="arrow-head arrow-3"></div>
+                <div class="arrow-head arrow-4"></div>
+            </div>
+            
+            <!-- Step-by-step packets -->
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="packet ip-packet">
+                        <div class="packet-label">IP Packet</div>
+                        <div>10.0.0.5 → 10.0.0.10</div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="packet mpls-packet">
+                        <div class="packet-label">MPLS Packet</div>
+                        <div class="label-stack">
+                            <div class="label outer-label">Outer Transport Label</div>
+                            <div class="label inner-label">Inner VPN Label</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="packet mpls-packet">
+                        <div class="packet-label">MPLS Packet</div>
+                        <div class="label p-router-action">Processing Outer Label</div>
+                        <div class="label inner-label">Inner VPN Label</div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="packet mpls-packet">
+                        <div class="packet-label">MPLS Packet</div>
+                        <div class="label inner-label">Inner VPN Label</div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="packet ip-packet">
+                        <div class="packet-label">IP Packet</div>
+                        <div>10.0.0.5 → 10.0.0.10</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Callouts -->
+            <div class="callout callout-2">
+                <div class="callout-arrow"></div>
+                <strong>Label Stacking:</strong> PE1 adds two MPLS labels:
+                <ul style="margin-top: 8px; padding-left: 18px; font-size: 0.95rem;">
+                    <li>Outer: Transport label for P router</li>
+                    <li>Inner: VPN label for CE2 identification</li>
+                </ul>
+            </div>
+            
+            <div class="callout callout-3">
+                <div class="callout-arrow"></div>
+                <strong>Label Swapping:</strong> P router only examines and swaps the outer transport label. The inner VPN label remains untouched.
+            </div>
+            
+            <div class="callout callout-4">
+                <div class="callout-arrow"></div>
+                <strong>Label Removal:</strong> PE2 removes the outer label and uses the inner VPN label to determine the correct VRF and CE2 interface.
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-ip"></div>
+                <span>IP Packet</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-outer"></div>
+                <span>Outer Transport Label</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-inner"></div>
+                <span>Inner VPN Label</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-p"></div>
+                <span>P Router Action</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>MPLS VPN uses a two-label stack to transport customer packets across the provider network while maintaining isolation between different customer VPNs.</p>
+    </div>
+</body>
+</html>
