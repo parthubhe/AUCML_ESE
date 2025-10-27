@@ -8,6 +8,8 @@ Requires:
 """
 import os, json, joblib, warnings, requests, textwrap
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import numpy as np, pandas as pd
 from sklearn.neighbors import NearestNeighbors
 import markdown
@@ -22,6 +24,24 @@ except Exception:
 
 app = Flask(__name__)
 app.secret_key = 'dev-key-change-this'
+
+# --- User Authentication Setup ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+# For simplicity, we'll use a dictionary as a user store.
+# Passwords are now hashed for security.
+users = {
+    'user1': {'password': generate_password_hash('password123', method='pbkdf2:sha256')}
+}
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
 
 MODELS_DIR = 'models'
 MODEL_PATH = os.path.join(MODELS_DIR, 'model.pkl')
@@ -117,8 +137,48 @@ def call_ollama_with_context(prompt_text, model=OLLAMA_MODEL, timeout=OLLAMA_TIM
 def home():
     """Renders the new landing page."""
     return render_template('home.html')
+    
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user_data = users.get(username)
+        if user_data and check_password_hash(user_data['password'], password):
+            user = User(username)
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password. Please try again.')
+    return render_template('login.html')
+    
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if username in users:
+            flash('Username already exists. Please choose another.')
+            return redirect(url_for('register'))
+            
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        users[username] = {'password': hashed_password}
+        
+        flash('Registration successful! You can now log in.')
+        return redirect(url_for('login'))
+        
+    return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 @app.route('/form', methods=['GET'])
+@login_required
 def index():
     """Renders the prediction form page."""
     choices = {}
@@ -135,6 +195,7 @@ def index():
     return render_template('index.html', form_fields=FORM_FIELDS, choices=choices, meta=meta)
 
 @app.route('/predict', methods=['POST'])
+@login_required
 def predict():
     data = {}
     for label, col in FORM_FIELDS:
@@ -264,7 +325,8 @@ Provide output in clear bullet points and short paragraphs.
         llm_output=html_output
     )
 
-@app.route('/admin', methods=['GET'])
+@app.route('/admin')
+@login_required
 def admin():
     counts = {}
     if train_df is not None:

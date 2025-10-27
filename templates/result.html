@@ -7,14 +7,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
-    <style>
-      .llm-output { white-space: pre-wrap; background:#fff; padding:1rem; border-radius:.5rem; max-height:420px; overflow:auto; box-shadow: 0 0 0 1px rgba(0,0,0,0.04) inset; }
-    </style>
   </head>
-  <body class="bg-light">
+  <body>
     <div class="container py-5">
       <div class="card shadow mx-auto mb-4" style="max-width:1200px;">
-        <div class="card-body">
+        <div class="card-body p-5">
           <h3 class="card-title">Prediction — Probabilities</h3>
           <p class="text-muted">Top predicted diseases and probabilities</p>
 
@@ -32,7 +29,7 @@
                 <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back</a>
               </div>
               {% if similar_cases %}
-                <h5 class="mt-4">Similar cases from training data</h5>
+                <h5 class="mt-4" style="color: var(--primary-color);">Similar cases from training data</h5>
                 <table class="table table-sm table-striped">
                   <thead><tr><th>Disease</th><th>Age</th><th>Fever</th><th>Cough</th><th>Fatigue</th></tr></thead>
                   <tbody>
@@ -53,7 +50,7 @@
               <canvas id="probChart" height="360"></canvas>
 
               {% if shap_bar %}
-                <h5 class="mt-4">Local explanation (SHAP)</h5>
+                <h5 class="mt-4" style="color: var(--primary-color);">Local explanation (SHAP)</h5>
                 <canvas id="shapChart" height="300"></canvas>
               {% endif %}
             </div>
@@ -63,7 +60,7 @@
       </div>
 
       <div class="card shadow mx-auto" style="max-width:1200px;">
-        <div class="card-body">
+        <div class="card-body p-5">
           <h4 class="card-title">LLM Diagnostics & Recommendations</h4>
           <p class="text-muted small">Context-aware assessment from your local Ollama model (<code>{{ config.get('OLLAMA_MODEL', 'local model') }}</code>)</p>
           {% if llm_output %}
@@ -77,6 +74,10 @@
     </div>
 
     <script>
+      // Chart.js defaults for dark theme
+      Chart.defaults.color = '#e0e0e0';
+      Chart.defaults.borderColor = '#333';
+
       const labels = {{ chart.labels|tojson }};
       const probs = {{ chart.probs|tojson }};
       const ctx = document.getElementById('probChart').getContext('2d');
@@ -85,6 +86,8 @@
         datasets: [{
           label: 'Probability (%)',
           data: probs.map(p => p*100),
+          backgroundColor: 'rgba(0, 170, 255, 0.5)',
+          borderColor: 'rgba(0, 170, 255, 1)',
           borderWidth: 1
         }]
       };
@@ -96,7 +99,11 @@
           scales: {
             x: {
               beginAtZero: true,
-              max: 100
+              max: 100,
+              grid: { color: '#333' }
+            },
+            y: {
+              grid: { color: '#333' }
             }
           },
           plugins: {
@@ -110,14 +117,30 @@
         const shapPairs = {{ shap_bar|tojson }};
         const s_labels = shapPairs.map(x => x.feature);
         const s_values = shapPairs.map(x => x.value);
+        const s_colors = s_values.map(v => v > 0 ? 'rgba(0, 170, 255, 0.5)' : 'rgba(255, 99, 132, 0.5)');
+        const s_borders = s_values.map(v => v > 0 ? 'rgba(0, 170, 255, 1)' : 'rgba(255, 99, 132, 1)');
+        
         const sctx = document.getElementById('shapChart').getContext('2d');
         new Chart(sctx, {
           type: 'bar',
           data: {
             labels: s_labels,
-            datasets: [{ label: 'SHAP value', data: s_values, borderWidth: 1 }]
+            datasets: [{ 
+                label: 'SHAP value', 
+                data: s_values, 
+                backgroundColor: s_colors,
+                borderColor: s_borders,
+                borderWidth: 1 
+            }]
           },
-          options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+          options: { 
+            indexAxis: 'y', 
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: '#333' } },
+              y: { grid: { color: '#333' } }
+            }
+          }
         });
       {% endif %}
     </script>

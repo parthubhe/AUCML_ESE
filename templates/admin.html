@@ -7,15 +7,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
   </head>
-  <body class="bg-light">
+  <body>
     <div class="container py-5">
       <div class="card shadow-lg mx-auto" style="max-width:900px;">
-        <div class="card-body">
+        <div class="card-body p-5">
           <h3 class="card-title mb-3">Admin Panel</h3>
           <p class="text-muted small">Model metadata and training data statistics.</p>
           
           {% if meta %}
-            <h4 class="mt-4">Model Metadata</h4>
+            <h4 class="mt-4" style="color: var(--primary-color);">Model Metadata</h4>
             <table class="table table-sm table-striped">
               <tbody>
                 {% for key, value in meta.items() %}
@@ -29,7 +29,7 @@
           {% endif %}
 
           {% if counts %}
-            <h4 class="mt-4">Disease Counts in Training Data</h4>
+            <h4 class="mt-4" style="color: var(--primary-color);">Disease Counts in Training Data</h4>
             <table class="table table-sm table-striped">
               <thead>
                 <tr>

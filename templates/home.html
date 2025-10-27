@@ -7,18 +7,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
   </head>
-  <body class="bg-light">
+  <body>
     <div class="container py-5">
       <div class="card shadow-lg mx-auto" style="max-width:900px;">
         <div class="card-body p-5">
           <h1 class="card-title mb-3">Welcome to the ICR[Identifying AgeRelated Conditions] Recognizer Tool</h1>
-          <p class="lead text-muted">An intelligent tool for exploring potential health conditions based on symptoms and demographic data.</p>
-          <hr class="my-4">
+          <p class="lead">An intelligent tool for exploring potential health conditions based on symptoms and demographic data.</p>
+          <hr class="my-4" style="border-color: var(--border-color);">
           
-          <h5 class="mt-4">About the Project</h5>
+          <h5 class="mt-4" style="color: var(--primary-color);">About the Project</h5>
           <p>This application leverages a machine learning models and GenAI to predict the probability of various age-related diseases. By entering a few key data points, such as symptoms and vital signs, you can receive a list of potential conditions ranked by likelihood.</p>
           
-          <h5 class="mt-4">How It Works</h5>
+          <h5 class="mt-4" style="color: var(--primary-color);">How It Works</h5>
           <ul>
             <li><strong>Machine Learning Model:</strong> At its core,A NeuralNetwork/XGBoost/Random Forest classifier analyzes your input to calculate probabilities for numerous diseases.</li>
             <li><strong>Data-driven Insights:</strong> The model is trained on a comprehensive dataset of patient profiles and symptoms to ensure robust predictions.</li>
@@ -31,11 +31,10 @@
           </div>
 
           <div class="d-flex justify-content-center mt-4">
-            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Go to Predictor Form</a>
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">Go to Predictor Form</a>
           </div>
         </div>
       </div>
-      <div class="text-center mt-3"><small class="text-muted">Navigate to the <a href="{{ url_for('admin') }}">Admin Panel</a> to view model metadata.</small></div>
     </div>
   </body>
 </html>

@@ -1,2 +1,207 @@
-body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-.card-title { font-weight: 700; }
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap');
+
+:root {
+  --primary-color: #00aaff;
+  --secondary-color: #0077b3;
+  --background-color: #121212;
+  --surface-color: #1e1e1e;
+  --text-color: #e0e0e0;
+  --text-muted-color: #a0a0a0; /* Made this lighter */
+  --border-color: #333;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+}
+
+body {
+  font-family: 'Ubuntu Mono', monospace;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/* Ensure all main text is readable */
+p, li, div {
+    color: var(--text-color);
+}
+
+.card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.card-title {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1.75rem;
+}
+
+.text-muted, small.text-muted {
+  color: var(--text-muted-color) !important;
+}
+.text-muted a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+.text-muted a:hover {
+    text-decoration: underline;
+}
+
+.form-label {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.form-control,
+.form-select {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.25);
+  outline: none;
+}
+
+/* Button styles with animations */
+.btn {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 170, 255, 0.3);
+}
+
+.btn-outline-secondary {
+  color: var(--text-muted-color);
+  border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+  transform: translateY(-3px);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 50%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.btn:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+.alert {
+  border-radius: 8px;
+}
+
+.alert-info {
+  background-color: rgba(0, 170, 255, 0.1);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+.alert-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
+}
+
+
+/* For login page */
+.login-container {
+  max-width: 450px;
+  margin: 5rem auto;
+}
+
+/* For result page */
+.list-group-item {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+.badge.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+table {
+  color: var(--text-color);
+}
+
+thead {
+  color: var(--primary-color);
+}
+.table-striped>tbody>tr:nth-of-type(odd)>* {
+  --bs-table-accent-bg: rgba(255, 255, 255, 0.05);
+}
+
+.llm-output {
+  white-space: pre-wrap;
+  background-color: var(--background-color);
+  padding: 1.5rem;
+  border-radius: .5rem;
+  max-height: 420px;
+  overflow: auto;
+  box-shadow: 0 0 0 1px var(--border-color) inset;
+  color: var(--text-color);
+}
+.llm-output h1, .llm-output h2, .llm-output h3 { color: var(--primary-color); }
